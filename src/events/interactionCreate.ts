@@ -62,7 +62,8 @@ const handleButtonInteraction = async (interaction: ButtonInteraction) => {
 }
 
 const handleModalInteraction = async (interaction: ModalSubmitInteraction) => {
-    const modal = modals[interaction.customId]
+    const prefix = interaction.customId.split('_')[0]
+    const modal = modals[prefix]
     if (!modal) {
         await interaction.reply({
             content: 'Modal not found!',

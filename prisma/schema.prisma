@@ -13,8 +13,8 @@ model User {
   username  String
   balance   Float    @default(0)
   role      UserRole @default(MEMBER)
-  orders    Order[]  @relation("OrderBooster")
-  created   Order[]  @relation("OrderCreator")
+  createdOrders Order[]  @relation("CreatedOrders")
+  boostedOrders Order[]  @relation("BoostedOrders")
 }
 
 model Order {
@@ -24,10 +24,10 @@ model Order {
   description String
   price       Float
   status      OrderStatus @default(PENDING)
-  booster     User?    @relation("OrderBooster", fields: [boosterId], references: [id])
-  boosterId   Int?
-  creator     User     @relation("OrderCreator", fields: [creatorId], references: [id])
+  creator     User     @relation("CreatedOrders", fields: [creatorId], references: [id])
   creatorId   Int
+  booster     User?    @relation("BoostedOrders", fields: [boosterId], references: [id])
+  boosterId   Int?
   messageId   String?  @unique
   channelId   String
 }

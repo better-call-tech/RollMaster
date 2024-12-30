@@ -6,7 +6,7 @@ import {
     ButtonStyle
 } from 'discord.js'
 import Command from '../templates/command.js'
-import { setConfig } from '../services/configService.js'
+import { setConfig, getConfig } from '../services/configService.js'
 import { createEmbed } from '../utils/embedBuilder.js'
 import { createButton } from '../utils/buttonBuilder.js'
 import { createActionRows } from '../utils/actionRowBuilder.js'
@@ -21,6 +21,44 @@ export default new Command({
         try {
             const guild = interaction.guild
             if (!guild) return
+
+            // Check both DB and actual channels
+            const existingOrderChannelId = await getConfig('ORDER_CREATE_CHANNEL')
+            const existingOrdersChannelId = await getConfig('ORDERS_CHANNEL')
+
+            let channelsExist = false
+
+            if (existingOrderChannelId || existingOrdersChannelId) {
+                try {
+                    const orderChannel = existingOrderChannelId ? 
+                        await guild.channels.fetch(existingOrderChannelId) : null
+                    const ordersChannel = existingOrdersChannelId ? 
+                        await guild.channels.fetch(existingOrdersChannelId) : null
+
+                    if (orderChannel || ordersChannel) {
+                        channelsExist = true
+                    }
+                } catch (error) {
+                    // Channels don't exist in server, clear config
+                    if (existingOrderChannelId) await setConfig('ORDER_CREATE_CHANNEL', '')
+                    if (existingOrdersChannelId) await setConfig('ORDERS_CHANNEL', '')
+                }
+            }
+
+            if (channelsExist) {
+                const alreadySetupEmbed = createEmbed({
+                    title: '⚠️ Setup Already Exists',
+                    description: 'The WoW Services system is already set up!\n\n' +
+                        'To create a new setup, please delete the existing:\n' +
+                        '• WoW Services category\n' +
+                        '• All associated channels\n' +
+                        'Then run this command again.',
+                    color: '#FFA500'
+                })
+
+                await interaction.reply({ embeds: [alreadySetupEmbed], ephemeral: true })
+                return
+            }
 
             const setupEmbed = createEmbed({
                 title: '🔧 Setting up WoW Services System...',
@@ -83,7 +121,6 @@ export default new Command({
                     `🎯 Active Orders: ${ordersChannel}\n\n` +
                     '**System is ready to use!**',
                 color: '#00ff00',
-                footer: 'Type /help for more information about commands'
             })
 
             await interaction.editReply({

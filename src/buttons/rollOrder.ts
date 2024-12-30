@@ -1,10 +1,14 @@
 import { 
     ButtonInteraction,
-    Collection
+    Collection,
+    ThreadAutoArchiveDuration,
+    TextChannel,
+    ChannelType
 } from 'discord.js'
 import Button from '../templates/button.js'
 import { createEmbed } from '../utils/embedBuilder.js'
 import { prisma } from '../prisma/prismaClient.js'
+import { getConfig } from '../services/configService.js'
 
 const orderRolls = new Collection<string, Map<string, number>>()
 
@@ -25,6 +29,8 @@ export default new Button({
                 return
             }
 
+            await interaction.deferReply({ ephemeral: true })
+
             if (!orderRolls.has(orderId)) {
                 orderRolls.set(orderId, new Map())
             }
@@ -32,9 +38,8 @@ export default new Button({
             const rolls = orderRolls.get(orderId)!
 
             if (rolls.has(interaction.user.id)) {
-                await interaction.reply({
+                await interaction.editReply({
                     content: 'You have already rolled for this order!',
-                    ephemeral: true
                 })
                 return
             }
@@ -48,7 +53,7 @@ export default new Button({
                 color: '#5865F2'
             })
 
-            await interaction.reply({
+            await interaction.editReply({
                 embeds: [rollEmbed]
             })
 
@@ -64,9 +69,88 @@ export default new Button({
                         }
                     })
 
+                    const order = await prisma.order.findUnique({
+                        where: { id: parseInt(orderId) },
+                        include: { creator: true }
+                    })
+
+                    if (!order) return
+
+                    const ordersChannelId = await getConfig('ORDERS_CHANNEL')
+                    if (!ordersChannelId) return
+
+                    const ordersChannel = await interaction.guild?.channels.fetch(ordersChannelId) as TextChannel
+                    if (!ordersChannel) return
+
+                    const privateThread = await ordersChannel.threads.create({
+                        name: `🔒 order-${orderId}-execution`,
+                        autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
+                        type: ChannelType.PrivateThread,
+                        reason: `Private thread for order #${orderId}`
+                    })
+
+                    let booster = await prisma.user.findUnique({
+                        where: { discordId: winner }
+                    })
+
+                    if (!booster) {
+                        booster = await prisma.user.create({
+                            data: {
+                                discordId: winner,
+                                username: `<@${winner}>`,
+                                balance: 0
+                            }
+                        })
+                    }
+
+                    await prisma.order.update({
+                        where: { id: parseInt(orderId) },
+                        data: { 
+                            boosterId: booster.id,
+                            channelId: privateThread.id,
+                            status: 'IN_PROGRESS'
+                        }
+                    })
+
+                    await privateThread.members.add(winner)
+                    await privateThread.members.add(order.creator.discordId)
+                    
+                    const adminRoleId = process.env.ADMIN_ROLE_ID!
+                    const admins = await interaction.guild?.members.fetch()
+                        .then(members => members.filter(member => 
+                            member.roles.cache.has(adminRoleId)
+                        ))
+                    
+                    for (const [, admin] of admins ?? []) {
+                        await privateThread.members.add(admin.id)
+                    }
+
+                    const privateEmbed = createEmbed({
+                        title: '🎯 Order Execution Thread',
+                        description: 'This is a private thread for executing the order.\n\n' +
+                            `🏆 **Selected Booster:** <@${winner}>\n` +
+                            `👤 **Order Creator:** <@${order.creator.discordId}>\n\n` +
+                            '**Please discuss order details and execution here.**',
+                        fields: [
+                            {
+                                name: '📋 Order Details',
+                                value: order.description,
+                                inline: false
+                            }
+                        ],
+                        color: '#00ff00',
+                        timestamp: true
+                    })
+
+                    await privateThread.send({
+                        content: `<@${winner}> <@${order.creator.discordId}>`,
+                        embeds: [privateEmbed]
+                    })
+
                     const resultEmbed = createEmbed({
-                        title: '🎯 Roll Winner',
-                        description: `<@${winner}> won with a roll of **${highestRoll}**!`,
+                        title: '🎯 Roll Winner Selected',
+                        description: `<@${winner}> won with a roll of **${highestRoll}**!\n\n` +
+                            '**A private thread has been created for order execution.**',
                         fields: [
                             {
                                 name: 'All Rolls',
@@ -79,31 +163,15 @@ export default new Button({
                         color: '#00ff00'
                     })
 
-                    let boosterDb = await prisma.user.findUnique({
-                        where: { discordId: winner }
-                    })
-
-                    if (!boosterDb) {
-                        boosterDb = await prisma.user.create({
-                            data: {
-                                discordId: winner,
-                                username: `<@${winner}>`
-                            }
-                        })
-                    }
-
-                    await prisma.order.update({
-                        where: { id: parseInt(orderId) },
-                        data: { 
-                            boosterId: boosterDb.id,
-                            status: 'IN_PROGRESS'
-                        }
-                    })
-
                     if (interaction.channel && 'send' in interaction.channel) {
                         await interaction.channel.send({
                             embeds: [resultEmbed]
                         })
+                    }
+
+                    if (interaction.channel?.isThread()) {
+                        await interaction.channel.setLocked(true)
+                        await interaction.channel.setArchived(true)
                     }
 
                     orderRolls.delete(orderId)
