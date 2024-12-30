@@ -8,7 +8,46 @@ generator client {
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
-  discordId String @unique
+  id        Int      @id @default(autoincrement())
+  discordId String   @unique
   username  String
+  balance   Float    @default(0)
+  role      UserRole @default(MEMBER)
+  orders    Order[]  @relation("OrderBooster")
+  created   Order[]  @relation("OrderCreator")
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  title       String
+  description String
+  price       Float
+  status      OrderStatus @default(PENDING)
+  booster     User?    @relation("OrderBooster", fields: [boosterId], references: [id])
+  boosterId   Int?
+  creator     User     @relation("OrderCreator", fields: [creatorId], references: [id])
+  creatorId   Int
+  messageId   String?  @unique
+  channelId   String
+}
+
+model Config {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+}
+
+enum UserRole {
+  ADMIN
+  BOOSTER
+  ADVERTISER
+  MEMBER
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }

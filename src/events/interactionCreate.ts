@@ -49,7 +49,8 @@ const handleCommandInteraction = async (
 }
 
 const handleButtonInteraction = async (interaction: ButtonInteraction) => {
-    const button = buttons[interaction.customId]
+    const prefix = interaction.customId.split('_')[0]
+    const button = buttons[prefix]
     if (!button) {
         await interaction.reply({
             content: 'Button not found!',

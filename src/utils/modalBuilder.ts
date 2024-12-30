@@ -30,17 +30,29 @@ export function createTextInput({
     customId,
     label,
     placeholder = '',
-    style = TextInputStyle.Short
+    style = TextInputStyle.Short,
+    required = false,
+    maxLength,
 }: {
     customId: string
     label: string
     placeholder?: string
     style?: TextInputStyle
+    required?: boolean
+    maxLength?: number
 }): TextInputBuilder {
-    return new TextInputBuilder()
+    const input = new TextInputBuilder()
         .setCustomId(customId)
         .setLabel(label)
         .setPlaceholder(placeholder)
         .setStyle(style)
+        .setRequired(required)
+
+    if (maxLength) {
+        input.setMaxLength(maxLength)
+    }
+
+    return input
 }
+
 
