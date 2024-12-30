@@ -1,0 +1,54 @@
+{
+  "name": "discord-bot-boilerprint",
+  "version": "1.0.0",
+  "description": "A Discord bot boilerprint with TypeScript",
+  "type": "module",
+  "author": {
+    "email": "slahrach.me@gmail.com",
+    "name": "sara lahrach"
+  },
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slahrach/discord-bot-boilerprint.git"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "seed": "tsx prisma/seed.ts",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write src/**/*.ts",
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^2.0.1",
+    "discord.js": "^14.13.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@eslint/config-array": "^0.17.0",
+    "@eslint/object-schema": "^2.0.0",
+    "@prisma/client": "^5.19.1",
+    "@sentry/node": "latest",
+    "@tsconfig/node20": "^20.1.1",
+    "@types/node": "^18.13.0",
+    "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "glob": "^10.0.0",
+    "husky": "9.1.6",
+    "prettier": "^3.0.2",
+    "prisma": "^5.19.1",
+    "prisma-cli": "^0.0.0",
+    "ts-node": "^10.9.2",
+    "tsc-watch": "^6.0.4",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.1.6"
+  }
+}
