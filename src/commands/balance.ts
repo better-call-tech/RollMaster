@@ -33,6 +33,8 @@ export default new Command({
                 return
             }
 
+            await interaction.deferReply({ ephemeral: true })
+
             let user = await prisma.user.findUnique({
                 where: { discordId: targetUser.id }
             })
@@ -56,16 +58,14 @@ export default new Command({
                 footer: 'WoW Services Management'
             })
 
-            await interaction.reply({
-                embeds: [balanceEmbed],
-                ephemeral: true
+            await interaction.editReply({
+                embeds: [balanceEmbed]
             })
 
         } catch (error) {
             console.error('Error checking balance:', error)
-            await interaction.reply({
-                content: 'There was an error checking the balance.',
-                ephemeral: true
+            await interaction.editReply({
+                content: 'There was an error checking the balance.'
             })
         }
     }

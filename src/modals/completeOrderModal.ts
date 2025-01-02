@@ -11,13 +11,14 @@ export default new Modal({
     customId: 'complete-order-modal',
     async execute(interaction: ModalSubmitInteraction) {
         try {
+            await interaction.deferReply({ ephemeral: true })
+
             const orderId = interaction.customId.split('_')[1]
             const price = parseFloat(interaction.fields.getTextInputValue('order-price'))
 
             if (isNaN(price)) {
-                await interaction.reply({
-                    content: 'Please enter a valid price!',
-                    ephemeral: true
+                await interaction.editReply({
+                    content: 'Please enter a valid price!'
                 })
                 return
             }
@@ -41,16 +42,15 @@ export default new Modal({
                 emoji: '✅'
             })
 
-            await interaction.reply({
+            await interaction.editReply({
                 embeds: [confirmEmbed],
                 components: [createActionRows([confirmButton])]
             })
 
         } catch (error) {
             console.error('Error in complete order modal:', error)
-            await interaction.reply({
-                content: 'There was an error processing the order completion.',
-                ephemeral: true
+            await interaction.editReply({
+                content: 'There was an error processing the order completion.'
             })
         }
     }

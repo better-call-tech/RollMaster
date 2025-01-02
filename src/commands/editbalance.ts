@@ -49,6 +49,8 @@ export default new Command({
                 return
             }
 
+            await interaction.deferReply({ ephemeral: true })
+
             const targetUser = interaction.options.getUser('user', true)
             const action = interaction.options.getString('action', true)
             const amount = interaction.options.getNumber('amount', true)
@@ -68,15 +70,14 @@ export default new Command({
             }
 
             if (action === 'remove' && user.balance < amount) {
-                await interaction.reply({
+                await interaction.editReply({
                     embeds: [createEmbed({
                         title: '❌ Balance Edit Failed',
                         description: `Cannot remove ${amount} coins from <@${targetUser.id}>'s balance.\n` +
                             `Current balance: ${user.balance} coins`,
                         color: '#ff0000',
                         footer: 'WoW Services Management'
-                    })],
-                    ephemeral: true
+                    })]
                 })
                 return
             }
@@ -105,22 +106,20 @@ export default new Command({
                 console.error('Error sending DM:', error)
             }
 
-            await interaction.reply({
+            await interaction.editReply({
                 embeds: [createEmbed({
                     title: '✅ Balance Updated',
                     description: `Successfully ${action === 'add' ? 'added' : 'removed'} ${amount} coins ${action === 'add' ? 'to' : 'from'} <@${targetUser.id}>'s balance.\n\n` +
                         `💰 **New Balance:** ${updatedUser.balance} coins`,
                     color: '#00ff00',
                     footer: 'WoW Services Management'
-                })],
-                ephemeral: true
+                })]
             })
 
         } catch (error) {
             console.error('Error editing balance:', error)
-            await interaction.reply({
-                content: 'There was an error editing the balance.',
-                ephemeral: true
+            await interaction.editReply({
+                content: 'There was an error editing the balance.'
             })
         }
     }

@@ -67,7 +67,7 @@ export default new Command({
             }
 
             const modal = createCustomModal({
-                customId: `complete-order-modal_${orderId}`, // Add orderId to modal customId
+                customId: `complete-order-modal_${orderId}`,
                 title: 'Complete Order',
                 components: [
                     createTextInput({
