@@ -18,6 +18,8 @@ export default new Button({
             const { guild, user } = interaction
             if (!guild) return
 
+            await interaction.deferReply({ ephemeral: true })
+
             const boosterRoleId = process.env.BOOSTER_ROLE_ID!
             const adminRoleId = process.env.ADMIN_ROLE_ID!
 
@@ -31,7 +33,6 @@ export default new Button({
                 throw new Error('Orders channel not found!')
             }
 
-            // Create thread in the orders channel
             const thread = await ordersChannel.threads.create({
                 name: `order-${user.username}-${Date.now()}`,
                 autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
@@ -51,24 +52,6 @@ export default new Button({
                     channelId: thread.id
                 }
             })
-
-            const boosters = await guild.members.fetch()
-                .then(members => members.filter(member => 
-                    member.roles.cache.has(boosterRoleId)
-                ))
-
-            for (const [, booster] of boosters) {
-                await thread.members.add(booster.id)
-            }
-
-            await thread.members.add(user.id)
-            const admins = await guild.members.fetch()
-                .then(members => members.filter(member => 
-                    member.roles.cache.has(adminRoleId)
-                ))
-            for (const [, admin] of admins) {
-                await thread.members.add(admin.id)
-            }
 
             const orderEmbed = createEmbed({
                 title: '🎫 New WoW Service Order',
@@ -99,7 +82,7 @@ export default new Button({
             const row = createActionRows([rollButton])
 
             const message = await thread.send({
-                content: `<@&${boosterRoleId}> New order available!`,
+                content: `<@&${boosterRoleId}> <@&${adminRoleId}> <@${user.id}>\nNew order available!`,
                 embeds: [orderEmbed],
                 components: [row]
             })
@@ -109,16 +92,14 @@ export default new Button({
                 data: { messageId: message.id }
             })
 
-            await interaction.reply({
+            await interaction.editReply({
                 content: `Order created! Please check ${thread}`,
-                ephemeral: true
             })
 
         } catch (error) {
             console.error('Error creating order:', error)
-            await interaction.reply({
+            await interaction.editReply({
                 content: 'There was an error creating your order. Please try again.',
-                ephemeral: true
             })
         }
     }

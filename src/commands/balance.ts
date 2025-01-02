@@ -25,7 +25,6 @@ export default new Command({
             const isAdmin = member?.roles.cache.has(process.env.ADMIN_ROLE_ID!)
             const targetUser = interaction.options.getUser('user') ?? interaction.user
 
-            // If not admin and trying to check other's balance
             if (!isAdmin && targetUser.id !== interaction.user.id) {
                 await interaction.reply({
                     content: 'You can only check your own balance!',

@@ -22,7 +22,6 @@ export default new Command({
             const guild = interaction.guild
             if (!guild) return
 
-            // Check both DB and actual channels
             const existingOrderChannelId = await getConfig('ORDER_CREATE_CHANNEL')
             const existingOrdersChannelId = await getConfig('ORDERS_CHANNEL')
 
@@ -39,7 +38,6 @@ export default new Command({
                         channelsExist = true
                     }
                 } catch (error) {
-                    // Channels don't exist in server, clear config
                     if (existingOrderChannelId) await setConfig('ORDER_CREATE_CHANNEL', '')
                     if (existingOrdersChannelId) await setConfig('ORDERS_CHANNEL', '')
                 }

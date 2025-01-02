@@ -29,7 +29,6 @@ export default new Button({
                 return
             }
 
-            await interaction.deferReply({ ephemeral: true })
 
             if (!orderRolls.has(orderId)) {
                 orderRolls.set(orderId, new Map())
@@ -38,11 +37,14 @@ export default new Button({
             const rolls = orderRolls.get(orderId)!
 
             if (rolls.has(interaction.user.id)) {
-                await interaction.editReply({
+                await interaction.reply({
                     content: 'You have already rolled for this order!',
+                    ephemeral: true
                 })
                 return
             }
+
+            await interaction.deferReply()
 
             const roll = Math.floor(Math.random() * 100) + 1
             rolls.set(interaction.user.id, roll)

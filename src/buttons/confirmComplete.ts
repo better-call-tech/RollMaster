@@ -13,7 +13,6 @@ export default new Button({
             const isAdmin = member?.roles.cache.has(process.env.ADMIN_ROLE_ID!)
 
             const [, orderId, priceStr] = interaction.customId.split('_')
-            console.log(orderId, priceStr);
             const order = await prisma.order.findUnique({
                 where: { id: parseInt(orderId) },
                 include: {
@@ -22,14 +21,18 @@ export default new Button({
                 }
             })
 
-            if (!order) return
+            if (!order) {
+                await interaction.editReply({
+                    content: 'Could not find the order!',
+                })
+                return
+            }
 
             const isCreator = order.creator.discordId === interaction.user.id
 
             if (!isAdmin && !isCreator) {
-                await interaction.reply({
+                await interaction.editReply({
                     content: 'Only admins or the order creator can confirm completion!',
-                    ephemeral: true
                 })
                 return
             }
@@ -39,9 +42,8 @@ export default new Button({
             if (!interaction.channel?.isThread()) return
 
             if (!order.booster) {
-                await interaction.reply({
+                await interaction.editReply({
                     content: 'Error: No booster assigned to this order!',
-                    ephemeral: true
                 })
                 return
             }
