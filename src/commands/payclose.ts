@@ -25,7 +25,7 @@ export default new Command({
             }
 
             const threadName = interaction.channel.name
-            const orderIdMatch = threadName.match(/order-(\d+)-execution/)
+            const orderIdMatch = threadName.match(/🔒 .+-(\d+)/)
             
             if (!orderIdMatch) {
                 await interaction.reply({

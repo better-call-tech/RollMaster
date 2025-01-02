@@ -115,7 +115,7 @@ export default new Button({
                 await boosterUser.send({
                     embeds: [createEmbed({
                         title: '💰 Payment Received - Booster Share',
-                        description: `You've received payment for boosting order #${order.id}!\n\n` +
+                        description: `You've received payment for order #${order.id}: **${order.title}**!\n\n` +
                             `💎 **Total Order Value:** ${price} coins\n` +
                             `💰 **Your Share (70%):** ${boosterShare} coins\n\n` +
                             `Thank you for your service! Keep up the great work! 🌟\n\n` +
@@ -129,7 +129,7 @@ export default new Button({
                 await creatorUser.send({
                     embeds: [createEmbed({
                         title: '💰 Payment Received - Creator Share',
-                        description: `Your order #${order.id} has been completed!\n\n` +
+                        description: `Your order #${order.id}: **${order.title}** has been completed!\n\n` +
                             `💎 **Total Order Value:** ${price} coins\n` +
                             `💰 **Your Share (25%):** ${creatorShare} coins\n\n` +
                             `Thanks for using our services! 🌟\n\n` +
@@ -143,7 +143,7 @@ export default new Button({
                 await adminUser.send({
                     embeds: [createEmbed({
                         title: '💰 Payment Received - Admin Share',
-                        description: `Order #${order.id} has been completed!\n\n` +
+                        description: `Order #${order.id}: **${order.title}** has been completed!\n\n` +
                             `💎 **Total Order Value:** ${price} coins\n` +
                             `💰 **Admin Share (5%):** ${adminShare} coins\n\n` +
                             `Distribution complete! ✨\n\n` +
@@ -158,6 +158,7 @@ export default new Button({
 
             await interaction.channel.setLocked(true)
             await interaction.channel.setArchived(true)
+            await interaction.channel.delete()
 
             await interaction.editReply({
                 embeds: [createEmbed({

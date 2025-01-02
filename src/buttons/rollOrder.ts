@@ -3,7 +3,8 @@ import {
     Collection,
     ThreadAutoArchiveDuration,
     TextChannel,
-    ChannelType
+    ChannelType,
+    MessageType
 } from 'discord.js'
 import Button from '../templates/button.js'
 import { createEmbed } from '../utils/embedBuilder.js'
@@ -85,11 +86,19 @@ export default new Button({
                     if (!ordersChannel) return
 
                     const privateThread = await ordersChannel.threads.create({
-                        name: `🔒 order-${orderId}-execution`,
+                        name: `🔒 ${order.title}-${orderId}`,
                         autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
                         type: ChannelType.PrivateThread,
-                        reason: `Private thread for order #${orderId}`
+                        reason: `Private thread for order #${orderId}`,
+                        invitable: false,
                     })
+
+                    const messages = await ordersChannel.messages.fetch({ limit: 1 })
+                    const lastMessage = messages.first()
+
+                    if (lastMessage && lastMessage.type === MessageType.ThreadCreated) {
+                        await lastMessage.delete()
+                    }
 
                     let booster = await prisma.user.findUnique({
                         where: { discordId: winner }
@@ -135,8 +144,8 @@ export default new Button({
                             '**Please discuss order details and execution here.**',
                         fields: [
                             {
-                                name: '📋 Order Details',
-                                value: order.description,
+                                name: '📋 Order Description',
+                                value: order.description || 'No description provided',
                                 inline: false
                             }
                         ],
@@ -174,6 +183,7 @@ export default new Button({
                     if (interaction.channel?.isThread()) {
                         await interaction.channel.setLocked(true)
                         await interaction.channel.setArchived(true)
+                        await interaction.channel.delete()
                     }
 
                     orderRolls.delete(orderId)

@@ -11,17 +11,18 @@ export default new Modal({
     customId: 'complete-order-modal',
     async execute(interaction: ModalSubmitInteraction) {
         try {
-            await interaction.deferReply({ ephemeral: true })
-
+            
             const orderId = interaction.customId.split('_')[1]
             const price = parseFloat(interaction.fields.getTextInputValue('order-price'))
-
+            
             if (isNaN(price)) {
-                await interaction.editReply({
-                    content: 'Please enter a valid price!'
+                await interaction.reply({
+                    content: 'Please enter a valid price!',
+                    ephemeral: true
                 })
                 return
             }
+            await interaction.deferReply()
 
             const confirmEmbed = createEmbed({
                 title: '🏁 Complete Order',
